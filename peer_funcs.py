@@ -284,3 +284,25 @@ def hosts_to_cli(hosts):
     peerstrs = ["{}@{}".format(p["address"], p["id"]) for p in jsx]
     peer = random.choice(peerstrs)
     return "jormungandr {} {} --config <your config.yaml> --genesis-block-hash <genesis-hash>".format(ret1, peer)
+
+
+def handshake(host):
+    """
+    :param host: IP:PORT string
+    :return: json format reply from Handshake message
+    """
+    conn = get_channel(host)
+    jsx = None
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        response = stub.Handshake(node_pb2.HandshakeRequest())
+        jsx = json_format.MessageToJson(response)
+        conn.close()
+
+    json_o = None
+
+    if jsx:
+        json_o = json.loads(jsx)
+
+    return json_o

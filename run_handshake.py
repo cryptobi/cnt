@@ -22,29 +22,24 @@
 # https://crypto.bi/ - Cryptocurrency content for everyone
 
 """
-Attempts to retrieve a list of peers from a remote host.
-Prints out JSON or YAML 
-Default output format: JSON
+Attempts a handshake with a remote host
 """
 
-import json
-import funcs
+import yaml
 import peer_funcs
 import argparse
 
 # Begin ---------------------
 
-parser = argparse.ArgumentParser(description='Attempt to fetch more peers from another network peer like a running node does in normal operation.')
-parser.add_argument('-f', '--format', metavar='<Output Format>', nargs='?', default='JSON', choices=["JSON", "YAML", "CLI"], type=str, help='Output format. Valid choices: JSON, YAML, CLI. Default: JSON')
-parser.add_argument('-s', '--source', metavar='<Data Source>', nargs='?', default='netstat', type=str, help='Data source. Valid choices: netstat, stdin or log file path. Default: netstat')
-parser.add_argument('host', metavar='<Host:Port>', type=str, help='Host:port to attempt to fetch peers from.')
+parser = argparse.ArgumentParser(description='Attempt a handshake with a remote peer.')
+parser.add_argument('-f', '--format', metavar='<Output Format>', nargs='?', default='JSON', choices=["JSON", "YAML"],
+                    type=str, help='Output format. Valid choices: JSON, YAML. Default: JSON')
+parser.add_argument('host', metavar='<Host:Port>', type=str, help='Host:port to attempt to connect to.')
 args = parser.parse_args()
 
-peers = peer_funcs.get_peers_from_host(args.host)
+ret = peer_funcs.handshake(args.host)
 
 if args.format == "JSON":
-    print(peer_funcs.peers_to_config_json(peers["peers"]))
+    print(ret)
 elif args.format == "YAML":
-    print(peer_funcs.peers_to_config_yaml(peers["peers"]))
-else:
-    print(peer_funcs.peers_to_cli(peers["peers"]))
+    print(yaml.dump(ret))
