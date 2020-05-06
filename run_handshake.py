@@ -21,15 +21,13 @@
 # Development time sponsored by:
 # https://crypto.bi/ - Cryptocurrency content for everyone
 
-"""
-Attempts a handshake with a remote host
-"""
-
 import yaml
 import peer_funcs
 import argparse
 
-# Begin ---------------------
+"""
+Attempts a handshake with a remote host
+"""
 
 parser = argparse.ArgumentParser(description='Attempt a handshake with a remote peer.')
 parser.add_argument('-f', '--format', metavar='<Output Format>', nargs='?', default='JSON', choices=["JSON", "YAML"],

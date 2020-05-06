@@ -21,6 +21,11 @@
 # Development time sponsored by:
 # https://crypto.bi/ - Cryptocurrency content for everyone
 
+import json
+import funcs
+import peer_funcs
+import argparse
+import os
 
 """
 Tests which hosts from local connections can return new peers.
@@ -31,13 +36,6 @@ Default output format: JSON
 
 """
 
-import json
-import funcs
-import peer_funcs
-import argparse
-import os
-
-# Begin ---------------------
 
 parser = argparse.ArgumentParser(description='Fetch and test peers for bootstrapping a Cardano node.')
 parser.add_argument('--format', metavar='N', type=str, nargs='?', default='JSON', choices=["JSON", "YAML", "CLI"], help='Output format. Valid choices: JSON, YAML, CLI. Default: JSON')

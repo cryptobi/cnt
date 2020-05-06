@@ -306,3 +306,25 @@ def handshake(host):
         json_o = json.loads(jsx)
 
     return json_o
+
+
+def tip(host):
+    """
+    :param host: IP:PORT string
+    :return: json format reply from Tip message
+    """
+    conn = get_channel(host)
+    jsx = None
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        response = stub.Tip(node_pb2.TipRequest())
+        jsx = json_format.MessageToJson(response)
+        conn.close()
+
+    json_o = None
+
+    if jsx:
+        json_o = json.loads(jsx)
+
+    return json_o
