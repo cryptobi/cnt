@@ -381,3 +381,27 @@ def get_headers(host, block_ids):
         conn.close()
 
     return ret
+
+
+def get_fragments(host, fragment_ids):
+    """
+    :param host: IP:PORT string
+    :param fragment_ids: comma separated fragment ID's
+    :return: Array of raw fragment contents (byte arrays) for each queried ID.
+    """
+    conn = get_channel(host)
+    ret = []
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        bids = [bytes(bytearray.fromhex(b.strip())) for b in fragment_ids.split(",")]
+
+        req = node_pb2.FragmentIds(ids=bids)
+
+        response = stub.GetFragments(req)
+        for fragment in response:
+            ret.append(fragment.content)
+
+        conn.close()
+
+    return ret
