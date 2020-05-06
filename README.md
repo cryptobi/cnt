@@ -10,7 +10,7 @@ You can think of CNT as a network node implementation without the block processi
 
 ## Documentation
 
-To learn how to run and use crypto.bi CNT in your own projects, visit the official documentation at [crypto.bi CNT home](https://crypto.bi/cnt/)
+To learn how to run and use crypto.bi CNT in your own projects, visit the official documentation at [crypto.bi CNT home](https://crypto.bi/tape/cnt/)
 
 ## Dependencies
 
