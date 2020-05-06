@@ -1,0 +1,9 @@
+{
+  "db": {
+    "user": "test_user",
+    "host": "test_host",
+    "pass": "test_pass",
+    "db": "test_db_schema"
+  },
+  "my_array": [0,1,2,3,4,5]
+}

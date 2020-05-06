@@ -1,0 +1,8 @@
+{
+  "db": {
+    "user": "dbuser",
+    "host": "host",
+    "pass": "pass",
+    "db": "db_schema"
+  }
+}
