@@ -405,3 +405,110 @@ def get_fragments(host, fragment_ids):
         conn.close()
 
     return ret
+
+
+def pull_headers(host, from_block_id, to_block_id):
+    """
+    Pulls headers for a range of blocks starting with from_block_id until to_block_id
+    :param host: IP:PORT string
+    :param from_block_id: Initial block ID
+    :param to_block_id: Final block ID
+    :return: Array of raw block header contents (byte arrays) for each queried block.
+    """
+    conn = get_channel(host)
+    ret = []
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        from_id = bytes(bytearray.fromhex(from_block_id.strip()))
+        to_id = bytes(bytearray.fromhex(to_block_id.strip()))
+        _pr1 = {"from": [from_id], "to": to_id}
+        req = node_pb2.PullHeadersRequest(**_pr1)
+        response = stub.PullHeaders(req)
+
+        for header in response:
+            ret.append(header.content)
+
+        conn.close()
+
+    return ret
+
+
+def pull_blocks_to_tip(host, from_id):
+    """
+    Pull blocks from from_id until tip of chain.
+    :param host: IP:PORT string
+    :param from_id: Pull blocks starting from from_id
+    :return: Array of raw block contents (byte arrays) for each returned block.
+    """
+    conn = get_channel(host)
+    ret = []
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        from_bid = bytes(bytearray.fromhex(from_id.strip()))
+        _pr1 = {"from": [from_bid]}
+
+        req = node_pb2.PullBlocksToTipRequest(**_pr1)
+
+        response = stub.PullBlocksToTip(req)
+        for block in response:
+            ret.append(block.content)
+
+        conn.close()
+
+    return ret
+
+
+def push_headers(host, header_bytes):
+    """
+    Pushes raw headers to the remote host.
+    :param host: IP:PORT string
+    :param header_bytes: Raw hex encoded header bytes.
+    :return: An empty PushHeaderResponse
+    """
+    conn = get_channel(host)
+    jsx = None
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        raw_header = bytes(bytearray.fromhex(header_bytes.strip()))
+
+        req = node_pb2.Header(content=raw_header)
+        response = stub.PushHeaders(req)
+        jsx = json_format.MessageToJson(response)
+        conn.close()
+
+    json_o = None
+
+    if jsx:
+        json_o = json.loads(jsx)
+
+    return json_o
+
+
+def upload_block(host, block_bytes):
+    """
+    Push a raw block to the remote host.
+    :param host: IP:PORT string
+    :param block_bytes: Raw hex encoded block bytes.
+    :return: Empty UploadBlocksResponse 
+    """
+    conn = get_channel(host)
+    jsx = None
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        raw_block = bytes(bytearray.fromhex(block_bytes.strip()))
+
+        req = node_pb2.Block(content=raw_block)
+        response = stub.UploadBlocks(req)
+        jsx = json_format.MessageToJson(response)
+        conn.close()
+
+    json_o = None
+
+    if jsx:
+        json_o = json.loads(jsx)
+
+    return json_o
