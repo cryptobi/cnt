@@ -112,12 +112,17 @@ def list_local_established_connections(limit=20):
 def get_channel(host):
     """Build channel with standard config."""
     conn = None
+    enable_retries = 0
+    max_message_length = 100 * 1024 * 1024
+    max_receive_message_length = 100 * 1024 * 1024
     timeouts_ms = 1000
     options = [
         ('grpc.lb_policy_name', 'pick_first'),
-        ('grpc.enable_retries', 0),
+        ('grpc.enable_retries', enable_retries),
         ('grpc.server_handshake_timeout_ms', timeouts_ms),
-        ('grpc.keepalive_timeout_ms', timeouts_ms)
+        ('grpc.keepalive_timeout_ms', timeouts_ms),
+        ('grpc.max_message_length', max_message_length),
+        ('grpc.max_receive_message_length', max_receive_message_length)
     ]
 
     try:
@@ -328,3 +333,27 @@ def tip(host):
         json_o = json.loads(jsx)
 
     return json_o
+
+
+def getblocks(host, block_ids):
+    """
+    :param host: IP:PORT string
+    :param block_ids: comma separated block ID's
+    :return: Array of raw block contents (byte arrays) for each queried block.
+    """
+    conn = get_channel(host)
+    ret = []
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        bids = [bytes(bytearray.fromhex(b.strip())) for b in block_ids.split(",")]
+
+        req = node_pb2.BlockIds(ids=bids)
+
+        response = stub.GetBlocks(req)
+        for block in response:
+            ret.append(block.content)
+
+        conn.close()
+
+    return ret
