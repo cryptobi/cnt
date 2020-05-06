@@ -335,7 +335,7 @@ def tip(host):
     return json_o
 
 
-def getblocks(host, block_ids):
+def get_blocks(host, block_ids):
     """
     :param host: IP:PORT string
     :param block_ids: comma separated block ID's
@@ -351,6 +351,30 @@ def getblocks(host, block_ids):
         req = node_pb2.BlockIds(ids=bids)
 
         response = stub.GetBlocks(req)
+        for block in response:
+            ret.append(block.content)
+
+        conn.close()
+
+    return ret
+
+
+def get_headers(host, block_ids):
+    """
+    :param host: IP:PORT string
+    :param block_ids: comma separated block ID's
+    :return: Array of raw block header contents (byte arrays) for each queried block.
+    """
+    conn = get_channel(host)
+    ret = []
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        bids = [bytes(bytearray.fromhex(b.strip())) for b in block_ids.split(",")]
+
+        req = node_pb2.BlockIds(ids=bids)
+
+        response = stub.GetHeaders(req)
         for block in response:
             ret.append(block.content)
 

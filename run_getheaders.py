@@ -26,17 +26,17 @@ import peer_funcs
 import argparse
 
 """
-Fetch blocks from a remote host
+Fetch block headers from a remote host
 """
 
-parser = argparse.ArgumentParser(description='Fetch blocks from a remote peer.')
+parser = argparse.ArgumentParser(description='Fetch block headers from a remote peer.')
 parser.add_argument('-f', '--format', metavar='<Output Format>', nargs='?', default='JSON', choices=["JSON", "YAML"],
                     type=str, help='Output format. Valid choices: JSON, YAML. Default: JSON')
 parser.add_argument('host', metavar='<Host:Port>', type=str, help='Host:port to attempt to connect to.')
 parser.add_argument('block_ids', metavar='<block_hash1>,<block_hash2> ...', type=str, help='Comma separated block id\'s to fetch')
 args = parser.parse_args()
 
-ret = peer_funcs.get_blocks(args.host, args.block_ids)
+ret = peer_funcs.get_headers(args.host, args.block_ids)
 
 if args.format == "JSON":
     print(ret)
