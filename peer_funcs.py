@@ -434,12 +434,12 @@ def pull_headers(host, from_block_id, to_block_id):
     return ret
 
 
-def pull_blocks_to_tip(host, from_id):
+def pull_blocks_to_tip_iterator(host, from_id):
     """
     Pull blocks from from_id until tip of chain.
     :param host: IP:PORT string
     :param from_id: Pull blocks starting from from_id
-    :return: Array of raw block contents (byte arrays) for each returned block.
+    :return: An array containing the connection and a Block iterator.
     """
     conn = get_channel(host)
     ret = []
@@ -451,31 +451,52 @@ def pull_blocks_to_tip(host, from_id):
 
         req = node_pb2.PullBlocksToTipRequest(**_pr1)
 
-        response = stub.PullBlocksToTip(req)
-        for block in response:
-            ret.append(block.content)
+        return [conn, stub.PullBlocksToTip(req)]
 
-        conn.close()
 
+def pull_blocks_to_tip(host, from_id):
+    """
+    Pull blocks from from_id until tip of chain.
+    :param host: IP:PORT string
+    :param from_id: Pull blocks starting from from_id
+    :return: Array of raw block contents (byte arrays) for each returned block.
+    """
+    ret = []
+    conn, response = pull_blocks_to_tip_iterator(host, from_id)
+    for block in response:
+        ret.append(block.content)
+
+    conn.close()
     return ret
 
 
-def push_headers(host, header_bytes):
+def push_headers(host, header_str):
     """
-    Pushes raw headers to the remote host.
+    Pushes raw headers to the remote host when a remote header is reported missing in a BlockSubscription
+    From the original jormungander documentation:
+        // Sends headers of blocks to the service in response to a `missing`
+        // item received from the BlockSubscription response stream.
+        // The headers are streamed the in chronological order of the chain.
     :param host: IP:PORT string
-    :param header_bytes: Raw hex encoded header bytes.
-    :return: An empty PushHeaderResponse
+    :param header_str: Raw hex encoded string of header bytes.
+    :return: A (likely empty) PushHeaderResponse
     """
     conn = get_channel(host)
     jsx = None
 
+    def header_iter():
+        """
+            Simple header iterator.
+            This is just a closure over a single header in args.header.
+            Create your own implementation for more advanced usage.
+        """
+        for h in [bytes(bytearray.fromhex(header_str.strip())) ]:
+            yield node_pb2.Header(content=h)
+
     if conn:
         stub = node_pb2_grpc.NodeStub(conn)
-        raw_header = bytes(bytearray.fromhex(header_bytes.strip()))
-
-        req = node_pb2.Header(content=raw_header)
-        response = stub.PushHeaders(req)
+        header_iterator = header_iter()
+        response = stub.PushHeaders(header_iterator)
         jsx = json_format.MessageToJson(response)
         conn.close()
 
@@ -487,22 +508,31 @@ def push_headers(host, header_bytes):
     return json_o
 
 
-def upload_block(host, block_bytes):
+def upload_block(host, block_str):
     """
-    Push a raw block to the remote host.
+    Push a raw block to the remote host in response to a solicit request during a BlockSubscription session.
+    From the original jormungander documentation:
+        // Uploads blocks to the service in response to a `solicit` item
+        // received from the BlockSubscription response stream.
     :param host: IP:PORT string
-    :param block_bytes: Raw hex encoded block bytes.
-    :return: Empty UploadBlocksResponse 
+    :param block_str: Raw hex encoded string of block bytes.
+    :return: Empty UploadBlocksResponse
     """
     conn = get_channel(host)
     jsx = None
 
+    def block_iter():
+        """
+            Simple block iterator.
+            This is just a closure over a single header in args.header.
+        """
+        for h in [bytes(bytearray.fromhex(block_str.strip())), ]:
+            yield node_pb2.Block(content=h)
+
     if conn:
         stub = node_pb2_grpc.NodeStub(conn)
-        raw_block = bytes(bytearray.fromhex(block_bytes.strip()))
-
-        req = node_pb2.Block(content=raw_block)
-        response = stub.UploadBlocks(req)
+        block_iterator = block_iter()
+        response = stub.UploadBlocks(block_iterator)
         jsx = json_format.MessageToJson(response)
         conn.close()
 
@@ -512,3 +542,78 @@ def upload_block(host, block_bytes):
         json_o = json.loads(jsx)
 
     return json_o
+
+
+def gossip_subscription(host):
+    """
+    Subscribe to receive peer gossip from host.
+    Consumer must close the connection after the iterator reaches EOF
+    :param host: IP:PORT string
+    :return: Returns an array of [connection, Gossip iterator].
+    """
+
+    conn = get_channel(host)
+
+    def null_gossip_iter():
+        """
+            Null iterator, since we won't be sending gossip.
+        """
+        for h in []:
+            yield node_pb2.Gossip(nodes=[bytes()])
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        gossip_iter = null_gossip_iter()
+        return [conn, stub.GossipSubscription(gossip_iter)]
+
+    return None
+
+
+def block_subscription(host):
+    """
+    Subscribe to receive block messages from host.
+    Consumer must close the connection after the iterator reaches EOF
+    :param host: IP:PORT string
+    :return: Returns an array of [connection, Block iterator].
+    """
+
+    conn = get_channel(host)
+
+    def null_block_iter():
+        """
+            Null iterator, since we won't be sending blocks.
+        """
+        for h in []:
+            yield node_pb2.Gossip(nodes=[bytes()])
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        block_iter = null_block_iter()
+        return [conn, stub.BlockSubscription(block_iter)]
+
+    return None
+
+
+def fragment_subscription(host):
+    """
+    Subscribe to receive fragment messages from host.
+    Consumer must close the connection after the iterator reaches EOF
+    :param host: IP:PORT string
+    :return: Returns an array of [connection, Fragment iterator].
+    """
+
+    conn = get_channel(host)
+
+    def null_fragment_iter():
+        """
+            Null iterator, since we won't be sending fragments.
+        """
+        for h in []:
+            yield node_pb2.Gossip(nodes=[bytes()])
+
+    if conn:
+        stub = node_pb2_grpc.NodeStub(conn)
+        fragment_iter = null_fragment_iter()
+        return [conn, stub.FragmentSubscription(fragment_iter)]
+
+    return None

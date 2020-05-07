@@ -26,17 +26,26 @@ import peer_funcs
 import argparse
 
 """
-Push raw headers to a remote peer
+Starts a reactive Fragment subscription to a remote peer.
+Since we do not produce fragments on this node, in practice it's a unidirectional subscription.
+(We just listen to new fragments from the network.)
+To make it bidirectional, edit or create a new version of fragment_subscription which accepts a
+custom iterator as source for fragments. 
+
+This implementation meant as a reference only.
 """
 
-parser = argparse.ArgumentParser(description='Push raw header to a remote peer.')
+parser = argparse.ArgumentParser(description='Subscribe to receive fragments from a remote peer.')
+parser.add_argument('-f', '--format', metavar='<Output Format>', nargs='?', default='JSON', choices=["JSON", "YAML"],
+                    type=str, help='Output format. Valid choices: JSON, YAML. Default: JSON')
 parser.add_argument('host', metavar='<Host:Port>', type=str, help='Host:port to attempt to connect to.')
-parser.add_argument('header', metavar='<headerbytes>', type=str, help='Raw hex header bytes')
 args = parser.parse_args()
 
-ret = peer_funcs.push_headers(args.host, args.header)
+fragment_iter = peer_funcs.fragment_subscription(args.host)
 
-if args.format == "JSON":
-    print(ret)
-elif args.format == "YAML":
-    print(yaml.dump(ret))
+for frag in fragment_iter:
+
+    if args.format == "JSON":
+        print(frag)
+    elif args.format == "YAML":
+        print(yaml.dump(frag))

@@ -24,19 +24,30 @@
 import yaml
 import peer_funcs
 import argparse
+import funcs
 
 """
-Push raw headers to a remote peer
+Starts a reactive Gossip subscription to a remote peer.
+Since we do not spread peer info on this node, in practice it's a unidirectional subscription.
+(We just listen to gossip on the network.)
+
+To make it bidirectional, edit or create a new version of gossip_subscription which accepts a
+custom iterator as source for gossip. 
+
+This implementation meant as a reference only.
 """
 
-parser = argparse.ArgumentParser(description='Push raw header to a remote peer.')
+parser = argparse.ArgumentParser(description='Subscribe to receive gossip from a remote peer.')
+parser.add_argument('-f', '--format', metavar='<Output Format>', nargs='?', default='JSON', choices=["JSON", "YAML"],
+                    type=str, help='Output format. Valid choices: JSON, YAML. Default: JSON')
 parser.add_argument('host', metavar='<Host:Port>', type=str, help='Host:port to attempt to connect to.')
-parser.add_argument('header', metavar='<headerbytes>', type=str, help='Raw hex header bytes')
 args = parser.parse_args()
 
-ret = peer_funcs.push_headers(args.host, args.header)
+gossip_iter = peer_funcs.gossip_subscription(args.host)
 
-if args.format == "JSON":
-    print(ret)
-elif args.format == "YAML":
-    print(yaml.dump(ret))
+for gossip in gossip_iter:
+
+    if args.format == "JSON":
+        print(gossip)
+    elif args.format == "YAML":
+        print(yaml.dump(gossip))
