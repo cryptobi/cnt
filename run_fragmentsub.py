@@ -41,7 +41,16 @@ parser.add_argument('-f', '--format', metavar='<Output Format>', nargs='?', defa
 parser.add_argument('host', metavar='<Host:Port>', type=str, help='Host:port to attempt to connect to.')
 args = parser.parse_args()
 
-fragment_iter = peer_funcs.fragment_subscription(args.host)
+
+def null_fragment_iter():
+    """
+        Null iterator, since we won't be sending fragments.
+    """
+    for h in []:
+        yield h
+
+
+[conn, fragment_iter] = peer_funcs.fragment_subscription(args.host, null_fragment_iter())
 
 for frag in fragment_iter:
 
@@ -49,3 +58,5 @@ for frag in fragment_iter:
         print(frag)
     elif args.format == "YAML":
         print(yaml.dump(frag))
+
+conn.close()

@@ -34,10 +34,15 @@ import crypto_funcs
 import yaml
 import random
 import fileinput
+import struct
 
 # for now, assume port 3000
 # TODO configurable port # filter
 assume_port_nr = 3000
+host_id_length = 24
+message_length_limit = 100 * 1024 * 1024
+request_timeout_ms = 1000
+request_retries = 0
 
 
 def list_hosts_from_stdin():
@@ -109,13 +114,44 @@ def list_local_established_connections(limit=20):
     return hosts
 
 
+def rand_host_id():
+    return crypto_funcs.rand_hex_str(host_id_length)
+
+
+def serialize_string(host_id_str):
+    """
+        A primitive implementation of the serde serialization format used in jormungandr
+        Format : str length encoded in 64 bits small endian, followed by ID bytes
+        :param: host_id_str: A network node ID string
+        :return: Serialized bytes.
+    """
+
+    return bytes(
+        list(struct.unpack('8B', struct.pack('Q', int(len(host_id_str) / 2)))) + list(bytearray.fromhex(host_id_str))
+    )
+
+
+def get_metadata():
+    """
+    Generate standard metadata for gRPC requests.
+    :return: metadata pairs suitable for gRPC requests
+    """
+    hid = rand_host_id()
+    md = [
+        ("node-id-bin", serialize_string(hid)),
+    ]
+    return md
+
+
 def get_channel(host):
     """Build channel with standard config."""
+
     conn = None
-    enable_retries = 0
-    max_message_length = 100 * 1024 * 1024
-    max_receive_message_length = 100 * 1024 * 1024
-    timeouts_ms = 1000
+    enable_retries = request_retries
+    max_message_length = message_length_limit
+    max_receive_message_length = message_length_limit
+    timeouts_ms = request_timeout_ms
+
     options = [
         ('grpc.lb_policy_name', 'pick_first'),
         ('grpc.enable_retries', enable_retries),
@@ -544,76 +580,60 @@ def upload_block(host, block_str):
     return json_o
 
 
-def gossip_subscription(host):
+def gossip_subscription(host, gossip_iterator):
     """
     Subscribe to receive peer gossip from host.
-    Consumer must close the connection after the iterator reaches EOF
+    Caller must close the connection after the iterator reaches EOF
     :param host: IP:PORT string
-    :return: Returns an array of [connection, Gossip iterator].
+    :param gossip_iterator: Input Gossip iterator.
+    :return: Returns an array of [connection, output Gossip iterator].
     """
 
     conn = get_channel(host)
 
-    def null_gossip_iter():
-        """
-            Null iterator, since we won't be sending gossip.
-        """
-        for h in []:
-            yield node_pb2.Gossip(nodes=[bytes()])
-
     if conn:
         stub = node_pb2_grpc.NodeStub(conn)
-        gossip_iter = null_gossip_iter()
-        return [conn, stub.GossipSubscription(gossip_iter)]
+        md = get_metadata()
+        ret = stub.GossipSubscription(gossip_iterator, metadata=md)
+
+        return [conn, ret]
 
     return None
 
 
-def block_subscription(host):
+def block_subscription(host, block_iter):
     """
     Subscribe to receive block messages from host.
-    Consumer must close the connection after the iterator reaches EOF
+    Caller must close the connection after the iterator reaches EOF
     :param host: IP:PORT string
-    :return: Returns an array of [connection, Block iterator].
+    :param block_iter: Input block iterator.
+    :return: Returns an array of [connection, output Block iterator].
     """
 
     conn = get_channel(host)
 
-    def null_block_iter():
-        """
-            Null iterator, since we won't be sending blocks.
-        """
-        for h in []:
-            yield node_pb2.Gossip(nodes=[bytes()])
-
     if conn:
         stub = node_pb2_grpc.NodeStub(conn)
-        block_iter = null_block_iter()
-        return [conn, stub.BlockSubscription(block_iter)]
+        md = get_metadata()
+        return [conn, stub.BlockSubscription(block_iter, metadata=md)]
 
     return None
 
 
-def fragment_subscription(host):
+def fragment_subscription(host, fragment_iterator):
     """
     Subscribe to receive fragment messages from host.
-    Consumer must close the connection after the iterator reaches EOF
+    Caller must close the connection after the iterator reaches EOF
     :param host: IP:PORT string
-    :return: Returns an array of [connection, Fragment iterator].
+    :param fragment_iterator: Input fragment iterator
+    :return: Returns an array of [connection, output Fragment iterator].
     """
 
     conn = get_channel(host)
 
-    def null_fragment_iter():
-        """
-            Null iterator, since we won't be sending fragments.
-        """
-        for h in []:
-            yield node_pb2.Gossip(nodes=[bytes()])
-
     if conn:
         stub = node_pb2_grpc.NodeStub(conn)
-        fragment_iter = null_fragment_iter()
-        return [conn, stub.FragmentSubscription(fragment_iter)]
+        md = get_metadata()
+        return [conn, stub.FragmentSubscription(fragment_iterator, metadata=md)]
 
     return None

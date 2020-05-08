@@ -56,15 +56,15 @@ class RecentPeerDAO:
     DAO class for recent peers.
     """
     @staticmethod
-    def save(conn, p: Peer):
+    def save(conn, p):
         pass
 
     @staticmethod
-    def delete(conn, recent_peers_id: int):
+    def delete(conn, recent_peers_id):
         pass
 
     @staticmethod
-    def delete_by_ip(conn, recent_peers_id: int):
+    def delete_by_ip(conn, recent_peers_id):
         pass
 
     @staticmethod

@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS zegossip;
+CREATE DATABASE IF NOT EXISTS cnt_gossip;
 
-CREATE TABLE zegossip.recent_peers(
+CREATE TABLE cnt_gossip.recent_peers(
     recent_peers_id SERIAL,
     peer_id varchar(64) default null,
     host varchar(64) not null,

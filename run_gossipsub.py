@@ -43,7 +43,16 @@ parser.add_argument('-f', '--format', metavar='<Output Format>', nargs='?', defa
 parser.add_argument('host', metavar='<Host:Port>', type=str, help='Host:port to attempt to connect to.')
 args = parser.parse_args()
 
-gossip_iter = peer_funcs.gossip_subscription(args.host)
+
+def null_gossip_iter():
+    """
+        Null Gossip iterator.
+    """
+    for h in []:
+        yield h
+
+
+[conn, gossip_iter] = peer_funcs.gossip_subscription(args.host, null_gossip_iter())
 
 for gossip in gossip_iter:
 
@@ -51,3 +60,5 @@ for gossip in gossip_iter:
         print(gossip)
     elif args.format == "YAML":
         print(yaml.dump(gossip))
+
+conn.close()

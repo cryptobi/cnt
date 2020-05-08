@@ -24,6 +24,19 @@
 
 import random
 
+
+def rand_hex_bytes(length=24):
+    """
+    Generate a random byte string, `length` bytes long.
+    :param length: String length in octets.
+    :return: A random bytes string.
+    """
+
+    hashx = random.getrandbits(length * 8)
+    return bytes(hashx)
+
+
+
 def rand_hex_str(length=24):
     """
     Generate a random hex string, `length` characters long.
@@ -31,7 +44,9 @@ def rand_hex_str(length=24):
     :return: A random string.
     """
     
-    hash = random.getrandbits(length * 8)
+    hashx = random.getrandbits(length * 8)
     fstr = "{{:{}X}}".format(length)
-
-    return fstr.format(hash).lower()
+    rstr = fstr.format(hashx).lower()
+    for i in range((length*2) - len(rstr)):
+        rstr = "{}0".format(rstr)
+    return rstr

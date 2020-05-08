@@ -24,6 +24,7 @@
 import yaml
 import peer_funcs
 import argparse
+import time
 
 """
 Starts a reactive Block subscription to a remote peer.
@@ -42,7 +43,16 @@ parser.add_argument('-f', '--format', metavar='<Output Format>', nargs='?', defa
 parser.add_argument('host', metavar='<Host:Port>', type=str, help='Host:port to attempt to connect to.')
 args = parser.parse_args()
 
-block_iter = peer_funcs.block_subscription(args.host)
+
+def my_block_iter():
+    """
+        Null iterator, since we won't be sending blocks.
+    """
+    for h in []:
+        yield h
+
+
+[conn, block_iter] = peer_funcs.block_subscription(args.host, my_block_iter())
 
 for block in block_iter:
 
@@ -50,3 +60,6 @@ for block in block_iter:
         print(block)
     elif args.format == "YAML":
         print(yaml.dump(block))
+
+
+conn.close()
