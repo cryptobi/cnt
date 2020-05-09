@@ -24,6 +24,12 @@
 # import mysql.connector
 from peer import Peer
 
+# MySQL driver has a bug where it must be loaded before all modules which use openssl (?)
+# Since the unittest module loads before the tested module, this module core dumps
+# when MySQL is loaded. For now this module isn't used in CNT so I've commented out the
+# MySQL code until a solution is found.
+
+
 """
 Database routines.
 """
