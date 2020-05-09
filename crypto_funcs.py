@@ -36,7 +36,6 @@ def rand_hex_bytes(length=24):
     return bytes(hashx)
 
 
-
 def rand_hex_str(length=24):
     """
     Generate a random hex string, `length` characters long.
@@ -50,3 +49,5 @@ def rand_hex_str(length=24):
     for i in range((length*2) - len(rstr)):
         rstr = "{}0".format(rstr)
     return rstr
+
+

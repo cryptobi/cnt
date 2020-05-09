@@ -118,6 +118,10 @@ def rand_host_id():
     return crypto_funcs.rand_hex_str(host_id_length)
 
 
+def zero_host_id():
+    return '0' * host_id_length
+
+
 def serialize_string(host_id_str):
     """
         A primitive implementation of the serde serialization format used in jormungandr
@@ -195,6 +199,23 @@ def get_peers_from_host(host):
                 json_o["peers"][i]["v4"]["ip"] = str(ipx)
 
     return json_o
+
+
+def peers_to_host_list(peers):
+    """
+    Converts peers as returned from get_peers_from_host into host:port list
+    :param peers:
+    :return:
+    """
+    ret = []
+
+    for peer in peers["peers"]:
+        host = str(peer["v4"]["ip"])
+        port = str(peer["v4"]["port"])
+        ipp = ":".join([host, port])
+        ret.append(ipp)
+
+    return ret
 
 
 def test_peers(peers, t_callback=None, pf_callback=None, zf_callback=None, gh_callback=None):

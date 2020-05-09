@@ -45,3 +45,8 @@ class TestPeerFuncs(unittest.TestCase):
 
     def test_list_local_established_connections(self):
         self.assertTrue(hasattr(peer_funcs, "list_local_established_connections"))
+
+    def test_zero_host_id(self):
+        zhid = '0' * peer_funcs.host_id_length
+        self.assertEqual(zhid, peer_funcs.zero_host_id())
+        self.assertEqual(len(peer_funcs.zero_host_id()), peer_funcs.host_id_length)

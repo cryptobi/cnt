@@ -21,42 +21,36 @@
 # Development time sponsored by:
 # https://crypto.bi/ - Cryptocurrency content for everyone
 
-import datetime
-import sys
 
-"""
-General purpose functions
-"""
+import timeit
+import time
+import funcs
 
 
-def zlog(msg, output_console=True, is_error=False):
+def time_func(func):
     """
-    Prints timestamped messages to stdout
-    :param msg: Messsage
-    :param output_console: Print to console? Boolean. Default True.
-    :param is_error: If true, prints to stderr.
-    :return: Number of characters written.
+    Time a function call.
+    :param func: Function to call
+    :return: Array of [unix_timestamp, function_timing_seconds]
     """
-    xfile = sys.stdout
-    fmsg = "{}: {}"
-    if is_error:
-        xfile = sys.stderr
-        fmsg = "[STDERR] {}: {}"
-
-    if output_console:
-        print(fmsg.format(datetime.datetime.now(), msg), file=xfile)
-    else:
-        # log to file in the future?
-        pass
-
-    return len(msg)
+    timing = timeit.timeit(func, number=1)
+    t0 = int(time.time())
+    return [t0, timing]
 
 
-def zlog_error(msg, output_console=True):
+def time_print_func(func, request_type, host, port, file, verbose=False):
     """
-    Utility function to call zlog with file=stderr.
-    :param msg: Messsage
-    :param output_console: Print to console? Boolean. Default True.
-    :return: Number of characters written.
+    :param func: Function to time
+    :param request_type: Short string describing this operation.
+    :param host: Network hostname
+    :param port: Network TCP port
+    :param file: Open CSV file to write to
+    :param verbose: Print feedback to stderr?
+    :return: void
     """
-    return zlog(msg, output_console, True)
+    [ts, timing] = time_func(func)
+    strx = "{},{},{},{},{}".format(request_type, ts, host, port, timing)
+    file.write("{}\n".format(strx))
+    file.flush()
+    if verbose:
+        funcs.zlog_error(strx)
