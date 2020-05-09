@@ -40,9 +40,9 @@ class TestPeer(unittest.TestCase):
     def test_init(self):
         # must return empty
         peer_o = peer.Peer(table_id, peer_id, invalid_host, invalid_port, timestamp)
-        self.assertEquals(peer_o.ts, timestamp)
-        self.assertEquals(peer_o.table_id, table_id)
-        self.assertEquals(peer_o.peer_id, peer_id)
-        self.assertEquals(peer_o.host, invalid_host)
-        self.assertEquals(peer_o.port, invalid_port)
+        self.assertEqual(peer_o.ts, timestamp)
+        self.assertEqual(peer_o.table_id, table_id)
+        self.assertEqual(peer_o.peer_id, peer_id)
+        self.assertEqual(peer_o.host, invalid_host)
+        self.assertEqual(peer_o.port, invalid_port)
 

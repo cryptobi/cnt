@@ -37,12 +37,12 @@ class TestCNTConfig(unittest.TestCase):
 
         jsx = cntconfig.load_json_from_file(jsonpath)
 
-        self.assertEquals(jsx["db"]["user"], "test_user")
-        self.assertEquals(jsx["db"]["host"], "test_host")
-        self.assertEquals(jsx["db"]["pass"], "test_pass")
-        self.assertEquals(jsx["db"]["db"], "test_db_schema")
+        self.assertEqual(jsx["db"]["user"], "test_user")
+        self.assertEqual(jsx["db"]["host"], "test_host")
+        self.assertEqual(jsx["db"]["pass"], "test_pass")
+        self.assertEqual(jsx["db"]["db"], "test_db_schema")
 
         for i in range(6):
-            self.assertEquals(jsx["my_array"][i], i)
+            self.assertEqual(jsx["my_array"][i], i)
 
 

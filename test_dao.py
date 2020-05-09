@@ -30,22 +30,22 @@ import dao
 
 class TestCNTDBConnection(unittest.TestCase):
     def test_get_connection(self):
-        self.assertTrue("save" in dao.CNTDBConnection)
+        self.assertTrue(hasattr(dao.CNTDBConnection, "get_connection"))
 
 
 class TestRecentPeerDAO(unittest.TestCase):
 
     def test_save(self):
-        self.assertTrue("save" in dao.RecentPeerDAO)
+        self.assertTrue(hasattr(dao.RecentPeerDAO, "save"))
 
     def test_delete(self):
-        self.assertTrue("delete" in dao.RecentPeerDAO)
+        self.assertTrue(hasattr(dao.RecentPeerDAO, "delete"))
 
     def test_delete_by_ip(self):
-        self.assertTrue("delete_by_ip" in dao.RecentPeerDAO)
+        self.assertTrue(hasattr(dao.RecentPeerDAO, "delete_by_ip"))
 
     def test_delete_all(self):
-        self.assertTrue("delete_all" in dao.RecentPeerDAO)
+        self.assertTrue(hasattr(dao.RecentPeerDAO, "delete_all"))
 
     def test_list(self):
-        self.assertTrue("list" in dao.RecentPeerDAO)
+        self.assertTrue(hasattr(dao.RecentPeerDAO, "list"))

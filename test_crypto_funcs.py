@@ -30,6 +30,6 @@ class TestCryptoFuncs(unittest.TestCase):
 
     def test_rand_hex_str(self):
         for i in range(32):
-            self.assertTrue(len(crypto_funcs.rand_hex_str(i)) == i)
+            self.assertTrue(len(crypto_funcs.rand_hex_str(i+1)) == 2*(i+1))
 
 

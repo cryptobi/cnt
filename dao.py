@@ -21,13 +21,12 @@
 # Development time sponsored by:
 # https://crypto.bi/ - Cryptocurrency content for everyone
 
+# import mysql.connector
+from peer import Peer
 
 """
 Database routines.
 """
-
-import mysql.connector
-from peer import Peer
 
 
 class CNTDBConnection:
@@ -39,14 +38,15 @@ class CNTDBConnection:
         :param: config: a ZeConfig object instance containing database credentials
         :return: mysql connection
         """
+        CNTDBConnection.cnx = None
         if not CNTDBConnection.cnx:
-
-            CNTDBConnection.cnx = mysql.connector.connect(
-                user=config["db"]["user"],
-                password=config["db"]["pass"],
-                host=config["db"]["host"],
-                database=config["db"]["db"]
-            )
+            pass
+            # CNTDBConnection.cnx = mysql.connector.connect(
+            #    user=config["db"]["user"],
+            #    password=config["db"]["pass"],
+            #    host=config["db"]["host"],
+            #    database=config["db"]["db"]
+            # )
 
         return CNTDBConnection.cnx
 
