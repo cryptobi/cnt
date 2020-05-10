@@ -55,7 +55,8 @@ args = parser.parse_args()
 
 host, port = args.host.split(":")
 discovered_hosts = {args.host}
-working_hosts = {}
+tested_hosts = set()
+total_tested_count = 0
 
 
 def gpfh_builder(remote_peer):
@@ -75,9 +76,10 @@ def gpfh_builder(remote_peer):
     return gpfh
 
 
-with open(args.csv, "w") as csv_file:
+with open(args.csv, "a+") as csv_file:
 
     timing_funcs.time_print_func(gpfh_builder(args.host), "get_peers_from_host", host, port, csv_file, True)
+    total_tested_count += 1
 
     if not len(discovered_hosts) > 1:
         funcs.zlog_error("ERROR: Zero hosts retrieved from {}. Aborting.".format(args.host))
@@ -93,5 +95,13 @@ with open(args.csv, "w") as csv_file:
     for host in host_iterator():
         hostx, portx = host.split(":")
         timing_funcs.time_print_func(gpfh_builder(host), "get_peers_from_host", hostx, portx, csv_file, True)
-        funcs.zlog_error("TOTAL {} HOSTS DISCOVERED".format(len(discovered_hosts)))
+        total_tested_count += 1
+        tested_hosts.add(host)
+        tests_per_host = total_tested_count / len(tested_hosts)
+        funcs.zlog_error("TOTAL {} HOSTS DISCOVERED, {} TESTS, {} HOSTS TESTED, {} TESTS PER HOST".format(
+            len(discovered_hosts),
+            total_tested_count,
+            len(tested_hosts),
+            tests_per_host
+        ))
         time.sleep(1)
